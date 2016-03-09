@@ -5,6 +5,9 @@ Useful for test suites and blocking terminal interfaces.
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
+from __future__ import print_function
+import sys
+
 try:
     from queue import Empty  # Python 3
 except ImportError:
@@ -15,7 +18,6 @@ from traitlets import Type
 from jupyter_client.channels import HBChannel
 from jupyter_client.client import KernelClient
 from .channels import ZMQSocketChannel
-
 
 class BlockingKernelClient(KernelClient):
     """A BlockingKernelClient """
@@ -33,11 +35,15 @@ class BlockingKernelClient(KernelClient):
             abs_timeout = float('inf')
         else:
             abs_timeout = time.time() + timeout
+        
+        start = time.time()
 
         from ..manager import KernelManager
+        print("Parent", self.parent, file=sys.stderr)
         if not isinstance(self.parent, KernelManager):
             # We aren't connected to a manager,
             # so first wait for kernel to become responsive to heartbeats
+            print("Waiting for heartbeat", file=sys.stderr)
             while not self.is_alive():
                 if time.time() > abs_timeout:
                     raise RuntimeError("Kernel didn't respond to heartbeats in %d seconds" % timeout)
@@ -55,6 +61,11 @@ class BlockingKernelClient(KernelClient):
                     break
 
             if not self.is_alive():
+                print("Not alive", time.time() - start, file=sys.stderr)
+                print(self.parent, file=sys.stderr)
+                print(self.parent.is_alive(), file=sys.stderr)
+                print(self.parent.kernel, file=sys.stderr)
+                print(self.parent.kernel.poll(), file=sys.stderr)
                 raise RuntimeError('Kernel died before replying to kernel_info')
 
             # Check if current time is ready check time plus timeout
