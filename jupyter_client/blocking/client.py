@@ -33,7 +33,9 @@ class BlockingKernelClient(KernelClient):
             abs_timeout = float('inf')
         else:
             abs_timeout = time.time() + timeout
-
+        
+        start = time.time()
+        print("start", start)
         # Wait for kernel info reply on shell channel
         while True:
             try:
@@ -41,11 +43,21 @@ class BlockingKernelClient(KernelClient):
             except Empty:
                 pass
             else:
+                print("msg", msg)
                 if msg['msg_type'] == 'kernel_info_reply':
                     self._handle_kernel_info_reply(msg)
                     break
-
+            
+            print("alive", time.time() - start, self.is_alive())
             if not self.is_alive():
+                print("parent", self.parent)
+                print("parent alive", self.parent.is_alive())
+                print('hb', self.hb_channel)
+                print('hb alive', self.hb_channel.is_alive())
+                print('hb beat', self.hb_channel.is_beating())
+                print('hb pause', self.hb_channel._pause)
+                print('hb _beat', self.hb_channel._beating)
+                print('hb _run', self.hb_channel._running)
                 raise RuntimeError('Kernel died before replying to kernel_info')
 
             # Check if current time is ready check time plus timeout

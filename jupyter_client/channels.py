@@ -124,12 +124,18 @@ class HBChannel(Thread):
             else:
                 break
         return events
-
+    
+    def start(self):
+        # Don't return from start until we've actually started
+        print("HB Start")
+        return super(HBChannel, self).start()
+    
     def run(self):
         """The thread's main activity.  Call start() instead."""
         self._create_socket()
         self._running = True
         self._beating = True
+        print("HB running", self)
 
         while self._running:
             if self._pause:
@@ -145,6 +151,7 @@ class HBChannel(Thread):
             request_time = time.time()
             ready = self._poll(request_time)
             if ready:
+                print("beat true")
                 self._beating = True
                 # the poll above guarantees we have something to recv
                 self.socket.recv()
@@ -154,6 +161,7 @@ class HBChannel(Thread):
                     time.sleep(remainder)
                 continue
             else:
+                print("beat false")
                 # nothing was received within the time limit, signal heart failure
                 self._beating = False
                 since_last_heartbeat = time.time() - request_time

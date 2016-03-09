@@ -396,6 +396,7 @@ class KernelManager(ConnectionFileMixin):
         Note that since only SIGTERM is supported on Windows, this function is
         only useful on Unix systems.
         """
+        print("Signalling kernel", signum)
         if self.has_kernel:
             if hasattr(os, "getpgid") and hasattr(os, "killpg"):
                 try:
@@ -410,7 +411,9 @@ class KernelManager(ConnectionFileMixin):
 
     def is_alive(self):
         """Is the kernel process still running?"""
+        print("KM alive", self.has_kernel)
         if self.has_kernel:
+            print("KM poll", self.kernel.poll())
             if self.kernel.poll() is None:
                 return True
             else:
