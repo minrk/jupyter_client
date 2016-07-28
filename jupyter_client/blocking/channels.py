@@ -43,7 +43,11 @@ class ZMQSocketChannel(object):
         return self.session.deserialize(smsg)
 
     def get_msg(self, block=True, timeout=None):
-        """ Gets a message if there is one that is ready. """
+        """Gets a message if there is one that is ready."""
+        if not self.is_alive():
+            raise RuntimeError("Channel is not running."
+                "  Call Client.start_channels() before requesting messages."
+            )
         if block:
             if timeout is not None:
                 timeout *= 1000  # seconds to ms
