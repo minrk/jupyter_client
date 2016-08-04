@@ -36,7 +36,7 @@ class SignalTestKernel(Kernel):
             import os
             from pprint import pprint
             pprint(dict(os.environ))
-            child = Popen(['bash', '-i', '-c', 'sleep 30'])
+            child = Popen(['bash', '-i', '-c', '/usr/bin/env; sleep 30'])
             print("starting", child.pid)
             self.children.append(child)
             reply['user_expressions']['pid'] = self.children[-1].pid
