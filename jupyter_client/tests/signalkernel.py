@@ -33,7 +33,10 @@ class SignalTestKernel(Kernel):
             'user_expressions': {},
         }
         if code == 'start':
-            child = Popen(['bash', '-i', '-c', 'sleep 30'])
+            import os
+            import pprint
+            pprint(dict(os.environ))
+            child = Popen(['bash', '-c', 'sleep 30'])
             print("starting", child.pid)
             self.children.append(child)
             reply['user_expressions']['pid'] = self.children[-1].pid
