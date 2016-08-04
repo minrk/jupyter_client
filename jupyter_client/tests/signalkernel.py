@@ -34,7 +34,7 @@ class SignalTestKernel(Kernel):
         }
         if code == 'start':
             import os
-            import pprint
+            from pprint import pprint
             pprint(dict(os.environ))
             child = Popen(['bash', '-c', 'sleep 30'])
             print("starting", child.pid)
