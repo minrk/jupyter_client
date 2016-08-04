@@ -33,7 +33,8 @@ class SignalTestKernel(Kernel):
             'user_expressions': {},
         }
         if code == 'start':
-            child = Popen(['bash', '-i', '-c', 'sleep 30'], stderr=PIPE)
+            child = Popen(['bash', '-i', '-c', 'sleep 30'])
+            print("starting", child.pid)
             self.children.append(child)
             reply['user_expressions']['pid'] = self.children[-1].pid
         elif code == 'check':
