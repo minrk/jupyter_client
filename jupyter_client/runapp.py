@@ -54,7 +54,7 @@ class RunApp(JupyterApp, JupyterConsoleApp):
     aliases = Dict(aliases)
     frontend_aliases = Any(frontend_aliases)
     frontend_flags = Any(frontend_flags)
-    kernel_timeout = Float(60, config=True,
+    kernel_timeout = Float(60,
         help="""Timeout for giving up on a kernel (in seconds).
 
         On first connect and restart, the console tests whether the
@@ -62,7 +62,7 @@ class RunApp(JupyterApp, JupyterConsoleApp):
         This sets the timeout in seconds for how long the kernel can take
         before being presumed dead.
         """
-    )
+    ).tag(config=True)
 
     def parse_command_line(self, argv=None):
         super(RunApp, self).parse_command_line(argv)

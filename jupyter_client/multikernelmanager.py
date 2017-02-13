@@ -13,7 +13,8 @@ import zmq
 from traitlets.config.configurable import LoggingConfigurable
 from ipython_genutils.importstring import import_item
 from traitlets import (
-    Instance, Dict, List, Unicode, Any, DottedObjectName
+    Instance, Dict, List, Unicode, Any, DottedObjectName,
+    default, observe,
 )
 from ipython_genutils.py3compat import unicode_type
 
@@ -42,26 +43,29 @@ def kernel_method(f):
 class MultiKernelManager(LoggingConfigurable):
     """A class for managing multiple kernels."""
 
-    default_kernel_name = Unicode(NATIVE_KERNEL_NAME, config=True,
+    default_kernel_name = Unicode(NATIVE_KERNEL_NAME,
         help="The name of the default kernel to start"
-    )
+    ).tag(config=True)
 
     kernel_spec_manager = Instance(KernelSpecManager, allow_none=True)
     
     kernel_manager_class = DottedObjectName(
-        "jupyter_client.ioloop.IOLoopKernelManager", config=True,
+        "jupyter_client.ioloop.IOLoopKernelManager",
         help="""The kernel manager class.  This is configurable to allow
         subclassing of the KernelManager for customized behavior.
         """
-    )
-    def _kernel_manager_class_changed(self, name, old, new):
-        self.kernel_manager_factory = import_item(new)
+    ).tag(config=True)
+    @observe('kernel_manager_class')
+    def _kernel_manager_class_changed(self, change):
+        self.kernel_manager_factory = import_item(change.new)
 
     kernel_manager_factory = Any(help="this is kernel_manager_class after import")
+    @default('kernel_manager_factory')
     def _kernel_manager_factory_default(self):
         return import_item(self.kernel_manager_class)
 
     context = Instance('zmq.Context')
+    @default('context')
     def _context_default(self):
         return zmq.Context.instance()
 

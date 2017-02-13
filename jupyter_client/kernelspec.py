@@ -13,7 +13,10 @@ import warnings
 pjoin = os.path.join
 
 from ipython_genutils.py3compat import PY3
-from traitlets import HasTraits, List, Unicode, Dict, Set, Bool, Type
+from traitlets import (
+    HasTraits, List, Unicode, Dict, Set, Bool, Type,
+    default,
+)
 from traitlets.config import LoggingConfigurable
 
 from jupyter_core.paths import jupyter_data_dir, jupyter_path, SYSTEM_JUPYTER_PATH
@@ -105,35 +108,38 @@ class NoSuchKernel(KeyError):
 
 class KernelSpecManager(LoggingConfigurable):
 
-    kernel_spec_class = Type(KernelSpec, config=True,
+    kernel_spec_class = Type(KernelSpec,
         help="""The kernel spec class.  This is configurable to allow
         subclassing of the KernelSpecManager for customized behavior.
         """
-    )
+    ).tag(config=True)
 
-    ensure_native_kernel = Bool(True, config=True,
+    ensure_native_kernel = Bool(True,
         help="""If there is no Python kernelspec registered and the IPython
         kernel is available, ensure it is added to the spec list.
         """
-    )
+    ).tag(config=True)
 
     data_dir = Unicode()
+    @default('data_dir')
     def _data_dir_default(self):
         return jupyter_data_dir()
 
     user_kernel_dir = Unicode()
+    @default('user_kernel_dir')
     def _user_kernel_dir_default(self):
         return pjoin(self.data_dir, 'kernels')
 
-    whitelist = Set(config=True,
+    whitelist = Set(
         help="""Whitelist of allowed kernel names.
 
         By default, all installed kernels are allowed.
         """
-    )
+    ).tag(config=True)
     kernel_dirs = List(
         help="List of kernel directories to search. Later ones take priority over earlier."
     )
+    @default('kernel_dirs')
     def _kernel_dirs_default(self):
         dirs = jupyter_path('kernels')
         # At some point, we should stop adding .ipython/kernels to the path,

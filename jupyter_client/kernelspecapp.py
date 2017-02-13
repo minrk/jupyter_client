@@ -13,7 +13,7 @@ from traitlets.config.application import Application
 from jupyter_core.application import (
     JupyterApp, base_flags, base_aliases
 )
-from traitlets import Instance, Dict, Unicode, Bool, List
+from traitlets import default, Instance, Dict, Unicode, Bool, List
 
 from . import __version__
 from .kernelspec import KernelSpecManager
@@ -28,14 +28,16 @@ class ListKernelSpecs(JupyterApp):
     version = __version__
     description = """List installed kernel specifications."""
     kernel_spec_manager = Instance(KernelSpecManager)
-    json_output = Bool(False, help='output spec name and location as machine-readable json.',
-            config=True)
+    json_output = Bool(False,
+        help="output spec name and location as machine-readable json.",
+    ).tag(config=True)
     
     flags = {'json': ({'ListKernelSpecs': {'json_output': True}},
                 "output spec name and location as machine-readable json."),
              'debug': base_flags['debug'],
             }
 
+    @default('kernel_spec_manager')
     def _kernel_spec_manager_default(self):
         return KernelSpecManager(parent=self, data_dir=self.data_dir)
 
@@ -83,30 +85,32 @@ class InstallKernelSpec(JupyterApp):
     usage = "jupyter kernelspec install SOURCE_DIR [--options]"
     kernel_spec_manager = Instance(KernelSpecManager)
 
+    @default('kernel_spec_manager')
     def _kernel_spec_manager_default(self):
         return KernelSpecManager(data_dir=self.data_dir)
 
     sourcedir = Unicode()
-    kernel_name = Unicode("", config=True,
+    kernel_name = Unicode("",
         help="Install the kernel spec with this name"
-    )
+    ).tag(config=True)
+    @default('kernel_name')
     def _kernel_name_default(self):
         return os.path.basename(self.sourcedir)
 
-    user = Bool(False, config=True,
+    user = Bool(False,
         help="""
         Try to install the kernel spec to the per-user directory instead of
         the system or environment directory.
         """
-    )
-    prefix = Unicode('', config=True,
+    ).tag(config=True)
+    prefix = Unicode('',
         help="""Specify a prefix to install to, e.g. an env.
         The kernelspec will be installed in PREFIX/share/jupyter/kernels/
         """
-    )
-    replace = Bool(False, config=True,
+    ).tag(config=True)
+    replace = Bool(False,
         help="Replace any existing kernel spec with this name."
-    )
+    ).tag(config=True)
 
     aliases = {
         'name': 'InstallKernelSpec.kernel_name',
@@ -158,12 +162,13 @@ class RemoveKernelSpec(JupyterApp):
     description = """Remove one or more Jupyter kernelspecs by name."""
     examples = """jupyter kernelspec remove python2 [my_kernel ...]"""
     
-    force = Bool(False, config=True,
+    force = Bool(False,
         help="""Force removal, don't prompt for confirmation."""
-    )
+    ).tag(config=True)
     spec_names = List(Unicode())
     
     kernel_spec_manager = Instance(KernelSpecManager)
+    @default('kernel_spec_manager')
     def _kernel_spec_manager_default(self):
         return KernelSpecManager(data_dir=self.data_dir, parent=self)
     
@@ -213,15 +218,16 @@ class InstallNativeKernelSpec(JupyterApp):
     description = """[DEPRECATED] Install the IPython kernel spec directory for this Python."""
     kernel_spec_manager = Instance(KernelSpecManager)
 
+    @default('kernel_spec_manager')
     def _kernel_spec_manager_default(self):
         return KernelSpecManager(data_dir=self.data_dir)
 
-    user = Bool(False, config=True,
+    user = Bool(False,
         help="""
         Try to install the kernel spec to the per-user directory instead of
         the system or environment directory.
         """
-    )
+    ).tag(config=True)
 
     flags = {'user': ({'InstallNativeKernelSpec': {'user': True}},
                 "Install to the per-user kernel registry"),

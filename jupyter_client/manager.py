@@ -22,7 +22,8 @@ import zmq
 from ipython_genutils.importstring import import_item
 from .localinterfaces import is_local_ip, local_ips
 from traitlets import (
-    Any, Float, Instance, Unicode, List, Bool, Type, DottedObjectName
+    Any, Float, Instance, Unicode, List, Bool, Type, DottedObjectName,
+    default, observe,
 )
 from jupyter_client import (
     launch_kernel,
@@ -43,17 +44,20 @@ class KernelManager(ConnectionFileMixin):
 
     # The PyZMQ Context to use for communication with the kernel.
     context = Instance(zmq.Context)
+    @default('context')
     def _context_default(self):
         return zmq.Context.instance()
 
     # the class to create with our `client` method
     client_class = DottedObjectName('jupyter_client.blocking.BlockingKernelClient')
     client_factory = Type(klass='jupyter_client.KernelClient')
+    @default('client_factory')
     def _client_factory_default(self):
         return import_item(self.client_class)
 
-    def _client_class_changed(self, name, old, new):
-        self.client_factory = import_item(str(new))
+    @observe('client_class')
+    def _client_class_changed(self, change):
+        self.client_factory = import_item(str(change.new))
 
     # The kernel process with which the KernelManager is communicating.
     # generally a Popen instance
@@ -61,22 +65,25 @@ class KernelManager(ConnectionFileMixin):
 
     kernel_spec_manager = Instance(kernelspec.KernelSpecManager)
 
+    @default('kernel_spec_manager')
     def _kernel_spec_manager_default(self):
         return kernelspec.KernelSpecManager(data_dir=self.data_dir)
 
-    def _kernel_spec_manager_changed(self):
+    @observe('kernel_spec_manager')
+    def _kernel_spec_manager_changed(self, change):
         self._kernel_spec = None
 
-    shutdown_wait_time = Float(
-        5.0, config=True,
+    shutdown_wait_time = Float(5.0,
         help="Time to wait for a kernel to terminate before killing it, "
-             "in seconds.")
+             "in seconds."
+    ).tag(config=True)
 
     kernel_name = Unicode(kernelspec.NATIVE_KERNEL_NAME)
 
-    def _kernel_name_changed(self, name, old, new):
+    @observe('kernel_name')
+    def _kernel_name_changed(self, change):
         self._kernel_spec = None
-        if new == 'python':
+        if change.new == 'python':
             self.kernel_name = kernelspec.NATIVE_KERNEL_NAME
 
     _kernel_spec = None
@@ -87,7 +94,7 @@ class KernelManager(ConnectionFileMixin):
             self._kernel_spec = self.kernel_spec_manager.get_kernel_spec(self.kernel_name)
         return self._kernel_spec
 
-    kernel_cmd = List(Unicode(), config=True,
+    kernel_cmd = List(Unicode(),
         help="""DEPRECATED: Use kernel_name instead.
 
         The Popen Command to launch the kernel.
@@ -99,9 +106,10 @@ class KernelManager(ConnectionFileMixin):
         this means that the kernel does not receive the
         option --debug if it given on the Jupyter command line.
         """
-    )
+    ).tag(config=True)
 
-    def _kernel_cmd_changed(self, name, old, new):
+    @observe('kernel_cmd')
+    def _kernel_cmd_changed(self, change):
         warnings.warn("Setting kernel_cmd is deprecated, use kernel_spec to "
                       "start different kernels.")
 
@@ -115,9 +123,9 @@ class KernelManager(ConnectionFileMixin):
 
     _restarter = Any()
 
-    autorestart = Bool(True, config=True,
+    autorestart = Bool(True,
         help="""Should we autorestart the kernel if it dies."""
-    )
+    ).tag(config=True)
 
     def __del__(self):
         self._close_control_socket()
