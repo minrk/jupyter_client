@@ -34,8 +34,14 @@ class KernelApp(JupyterApp):
 
     def initialize(self, argv=None):
         super(KernelApp, self).initialize(argv)
+        self.ksm = KernelSpecManager(parent=self)
+        if not self.kernel_name:
+            kernels = self.ksm.find_kernel_specs()
+            self.exit("Please specify a kernel with --kernel=<name>."
+                      " Kernels found: %s." % ', '.join(kernels))
         self.km = KernelManager(kernel_name=self.kernel_name,
-                                config=self.config)
+                                kernel_spec_manager=self.ksm,
+                                parent=self)
         cf_basename = 'kernel-%s.json' % uuid.uuid4()
         self.km.connection_file = os.path.join(self.runtime_dir, cf_basename)
         self.loop = IOLoop.current()
@@ -57,7 +63,7 @@ class KernelApp(JupyterApp):
     def log_connection_info(self):
         cf = self.km.connection_file
         self.log.info('Connection file: %s', cf)
-        self.log.info("To connect a client: --existing %s", os.path.basename(cf))
+        self.log.info("To connect a client, use: --existing %s", os.path.basename(cf))
 
     def start(self):
         self.log.info('Starting kernel %r', self.kernel_name)
