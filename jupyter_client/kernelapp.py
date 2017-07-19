@@ -4,10 +4,10 @@ import uuid
 
 from jupyter_core.application import JupyterApp
 from tornado.ioloop import IOLoop
-from traitlets import Unicode
+from traitlets import Unicode, default
 
 from . import __version__
-from .kernelspec import KernelSpecManager
+from .kernelspec import KernelSpecManager, NATIVE_KERNEL_NAME
 from .manager import KernelManager
 
 class KernelApp(JupyterApp):
@@ -24,6 +24,13 @@ class KernelApp(JupyterApp):
     kernel_name = Unicode(
         help = 'The name of a kernel to start'
     ).tag(config=True)
+    
+    @default('kernel_name')
+    def _kernel_name_default(self):
+        kernels = self.ksm.find_kernel_specs()
+        if NATIVE_KERNEL_NAME in kernels:
+            return NATIVE_KERNEL_NAME
+        return ''
 
     def initialize(self, argv=None):
         super(KernelApp, self).initialize(argv)
