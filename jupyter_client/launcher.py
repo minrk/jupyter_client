@@ -101,10 +101,12 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
         except:
             from _subprocess import DuplicateHandle, GetCurrentProcess, \
                 DUPLICATE_SAME_ACCESS, CREATE_NEW_PROCESS_GROUP
-        # Launch the kernel process
-        if independent:
-            kwargs['creationflags'] = CREATE_NEW_PROCESS_GROUP
-        else:
+
+        # always create a new process group to
+        # avoid sharing ctrl-c handling
+        kwargs.setdefault('creationflags', 0)
+        kwargs['creationflags'] |= CREATE_NEW_PROCESS_GROUP
+        if not independent:
             pid = GetCurrentProcess()
             handle = DuplicateHandle(pid, pid, pid, 0,
                                      True, # Inheritable by new processes.
@@ -113,7 +115,7 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None, env=None,
 
         # Prevent creating new console window on pythonw
         if redirect_out:
-            kwargs['creationflags'] = kwargs.setdefault('creationflags', 0) | 0x08000000 # CREATE_NO_WINDOW
+            kwargs['creationflags'] |= 0x08000000 # CREATE_NO_WINDOW
 
     else:
         # Create a new session.

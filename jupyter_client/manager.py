@@ -411,8 +411,7 @@ class KernelManager(ConnectionFileMixin):
             interrupt_mode = self.kernel_spec.interrupt_mode
             if interrupt_mode == 'signal':
                 if sys.platform == 'win32':
-                    from .win_interrupt import send_interrupt
-                    send_interrupt(self.kernel.win32_interrupt_event)
+                    self.signal_kernel(signal.CTRL_C_EVENT)
                 else:
                     self.signal_kernel(signal.SIGINT)
 
