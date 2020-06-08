@@ -12,7 +12,7 @@ import zmq
 from traitlets.config.configurable import LoggingConfigurable
 from ipython_genutils.importstring import import_item
 from traitlets import (
-    Any, Bool, Dict, DottedObjectName, Instance, Unicode, default, observe
+    Any, Bool, Dict, DottedObjectName, Instance, Set, Unicode, default, observe
 )
 from ipython_genutils.py3compat import unicode_type
 
@@ -56,11 +56,8 @@ class MultiKernelManager(LoggingConfigurable):
         """
     )
 
-    def __init__(self, *args, **kwargs):
-        super(MultiKernelManager, self).__init__(*args, **kwargs)
-
-        # Cache all the currently used ports
-        self.currently_used_ports = set()
+    # Cache all the currently used ports
+    currently_used_ports = Set()
 
     @observe('kernel_manager_class')
     def _kernel_manager_class_changed(self, change):
