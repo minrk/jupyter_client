@@ -39,7 +39,7 @@ class KernelManager(ConnectionFileMixin):
     # The PyZMQ Context to use for communication with the kernel.
     context = Instance(zmq.Context)
     def _context_default(self):
-        return zmq.Context()
+        return zmq.Context.instance()
 
     # the class to create with our `client` method
     client_class = DottedObjectName('jupyter_client.blocking.BlockingKernelClient')
