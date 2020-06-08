@@ -128,6 +128,8 @@ class KernelManager(ConnectionFileMixin):
     def __del__(self):
         self._close_control_socket()
         self.cleanup_connection_file()
+        if self._created_context and self.context and not self.context.closed:
+            self.context.destroy(linger=100)
 
     #--------------------------------------------------------------------------
     # Kernel restarter
@@ -348,9 +350,6 @@ class KernelManager(ConnectionFileMixin):
         self.cleanup_ipc_files()
         self._close_control_socket()
         self.session.parent = None
-
-        if self._created_context and not restart:
-            self.context.destroy(linger=100)
 
     def cleanup(self, connection_file=True):
         """Clean up resources when the kernel is shut down"""
