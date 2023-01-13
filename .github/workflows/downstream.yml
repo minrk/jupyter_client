@@ -19,7 +19,7 @@ jobs:
       - uses: jupyterlab/maintainer-tools/.github/actions/downstream-test@v1
         with:
           package_name: ipykernel
-          package_spec: "pyqt5 ipykernel[test]"
+          package_spec: "pyqt5 ipykernel[test] pyzmq<25"
 
   nbclient:
     runs-on: ubuntu-latest
